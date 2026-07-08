@@ -29,6 +29,16 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "list_views",
+      "description": "List all non-template views in the active Revit document",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "switch_active_view",
+      "description": "Switch the active Revit view by view id, unique id, or name",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "get_selected_elements",
       "description": "get selected elements",
       "assemblyPath": "RevitMCPCommandSet.dll"

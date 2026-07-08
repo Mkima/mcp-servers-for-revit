@@ -11,6 +11,8 @@ namespace revit_mcp_plugin.Core
     {
         public Result OnStartup(UIControlledApplication application)
         {
+            TaskDialog.Show("Revit MCP Plugin", $"Revit MCP Plugin loaded successfully.\nAssembly: {Assembly.GetExecutingAssembly().Location}");
+
             RibbonPanel mcpPanel = application.CreateRibbonPanel("Revit MCP Plugin");
 
             PushButtonData pushButtonData = new PushButtonData("ID_EXCMD_TOGGLE_REVIT_MCP", "Revit MCP\r\n Switch",

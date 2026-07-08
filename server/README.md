@@ -23,14 +23,27 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 {
     "mcpServers": {
         "mcp-server-for-revit": {
-            "command": "npx",
-            "args": ["-y", "mcp-server-for-revit"]
+            "command": "node",
+            "args": ["C:\\Users\\Adi\\source\\mcp-servers-for-revit\\server\\build\\index.js"]
         }
     }
 }
 ```
 
-Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
+If you want to use the published npm package instead, keep `npx -y mcp-server-for-revit`. For local development, the path-based config above ensures Claude uses the latest build from this workspace.
+
+### Local development
+
+From this repository, build and run the local server with:
+
+```bash
+cd server
+npm install
+npm run build
+npm start
+```
+
+The local server will register the latest tools, including `list_views` and `switch_active_view`.
 
 ## Supported Tools
 

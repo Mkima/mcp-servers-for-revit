@@ -2,7 +2,7 @@
     "name": "mcp-server-for-revit",
     "version": "1.0.0",
     "description": "MCP server for interacting with Autodesk Revit through AI assistants like Claude",
-    "main": "index.js",
+    "main": "./build/index.js",
     "type": "module",
     "bin": {
         "mcp-server-for-revit": "./build/index.js"
@@ -14,6 +14,7 @@
         "clean": "rimraf build",
         "prebuild": "npm run clean",
         "build": "tsc",
+        "start": "node ./build/index.js",
         "prepublishOnly": "npm run build"
     },
     "files": [

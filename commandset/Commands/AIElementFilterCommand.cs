@@ -33,6 +33,8 @@ namespace RevitMCPCommandSet.Commands
         {
             try
             {
+                AIElementFilterEventHandler.WriteRuntimeLog("AIElementFilterCommand.Execute invoked");
+
                 FilterSetting data = new FilterSetting();
                 // 解析参数
                 data = parameters["data"].ToObject<FilterSetting>();
