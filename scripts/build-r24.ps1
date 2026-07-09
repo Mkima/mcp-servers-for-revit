@@ -64,6 +64,13 @@ finally {
     Pop-Location
 }
 
+# Close all Revit processes before copying to avoid file locking issues
+Write-Host "Closing all Revit processes..." -ForegroundColor Yellow
+Get-Process | Where-Object { $_.ProcessName -like "*Revit*" } | ForEach-Object {
+    Write-Host "Stopping process $($_.ProcessName) (PID:$($_.Id))" -ForegroundColor Yellow
+    Stop-Process -Id $_.Id -Force
+}
+
 if (-not (Test-Path $commandSetSourcePath)) {
     throw "Build output not found at $commandSetSourcePath"
 }
