@@ -134,6 +134,11 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "get_fixtures_by_room",
+      "description": "Get all plumbing fixtures (sinks, toilets, water heaters) associated with a specific room by its ElementId",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "create_dimensions",
       "description": "Create dimension annotations between elements or points in the current view",
       "assemblyPath": "RevitMCPCommandSet.dll"
