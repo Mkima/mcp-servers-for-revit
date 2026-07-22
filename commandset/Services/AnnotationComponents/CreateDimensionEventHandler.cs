@@ -1,4 +1,4 @@
-// 
+﻿// 
 //                       RevitAPI-Solutions
 // Copyright (c) Duong Tran Quang (DTDucas) (baymax.contact@gmail.com)
 // 
@@ -24,7 +24,6 @@
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Annotation;
 using RevitMCPCommandSet.Models.Common;
-using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services.AnnotationComponents;
@@ -134,7 +133,6 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                         if (dimInfo.ElementIds != null && dimInfo.ElementIds.Count > 0)
                         {
                             // Create dimension between elements
-                            var dimensionDirection = (endPoint - startPoint).Normalize();
                             var references = new ReferenceArray();
                             foreach (var elementId in dimInfo.ElementIds)
                             {
@@ -142,7 +140,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                                 if (element != null)
                                 {
                                     // Get appropriate reference for this element
-                                    foreach (var reference in GetReferences(element, view, dimensionDirection))
+                                    foreach (var reference in GetReferences(element, view))
                                     {
                                         references.Append(reference);
                                     }
@@ -160,12 +158,11 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                         {
                             // Create a simple dimension line between two points
                             var line = Line.CreateBound(startPoint, endPoint);
-                            var dimDirection = (endPoint - startPoint).Normalize();
 
                             // Pick references from geometry in the view at those points
                             var refArray = new ReferenceArray();
-                            var startRef = FindReferenceAtPoint(view, startPoint, dimDirection);
-                            var endRef = FindReferenceAtPoint(view, endPoint, dimDirection);
+                            var startRef = FindReferenceAtPoint(view, startPoint);
+                            var endRef = FindReferenceAtPoint(view, endPoint);
 
                             if (startRef != null && endRef != null)
                             {
@@ -190,7 +187,7 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                             // Apply additional parameters
                             ApplyDimensionParameters(dimension, dimInfo);
 
-                            createdDimensionIds.Add(dimension.Id.GetIntValue());
+                            createdDimensionIds.Add(dimension.Id.IntegerValue);
                         }
 
                         transaction.Commit();
@@ -236,7 +233,6 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
     /// <returns>True if operation completed within timeout</returns>
     public bool WaitForCompletion(int timeoutMilliseconds = 10000)
     {
-        _resetEvent.Reset();
         return _resetEvent.WaitOne(timeoutMilliseconds);
     }
 
@@ -258,9 +254,8 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
     /// </summary>
     /// <param name="element">Element to get references for</param>
     /// <param name="view">View context</param>
-    /// <param name="dimensionDirection">Direction of the dimension line (used to pick correct wall face)</param>
     /// <returns>List of references</returns>
-    private List<Reference> GetReferences(Element element, View view, XYZ dimensionDirection = null)
+    private List<Reference> GetReferences(Element element, View view)
     {
         var references = new List<Reference>();
 
@@ -276,113 +271,58 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
 
             if (geometry != null)
             {
-                Reference bestRef = null;
-                double bestAlignment = -1;
-
                 foreach (var obj in geometry)
                 {
-                    if (obj is Solid solid && solid.Faces.Size > 0)
+                    if (obj is Solid solid)
                     {
+                        // Get the face references
                         foreach (Face face in solid.Faces)
                         {
-                            if (face is PlanarFace planarFace)
+                            references.Add(face.Reference);
+                            break; // Usually just need the first face
+                        }
+
+                        // If no faces, try edges
+                        if (references.Count == 0)
+                        {
+                            foreach (Edge edge in solid.Edges)
                             {
-                                var normal = planarFace.FaceNormal;
-
-                                // Skip horizontal faces (top/bottom of wall) - useless in plan view
-                                if (Math.Abs(normal.Z) > 0.9)
-                                    continue;
-
-                                if (dimensionDirection != null)
-                                {
-                                    // Find face whose normal is most parallel to the dimension direction.
-                                    // For a horizontal dim between two vertical walls, we want the
-                                    // wall faces whose normals point along the dim direction.
-                                    double alignment = Math.Abs(normal.DotProduct(dimensionDirection));
-                                    if (alignment > bestAlignment)
-                                    {
-                                        bestAlignment = alignment;
-                                        bestRef = face.Reference;
-                                    }
-                                }
-                                else
-                                {
-                                    // Without direction info, take first vertical face
-                                    references.Add(face.Reference);
-                                    return references;
-                                }
+                                references.Add(edge.Reference);
+                                break; // Usually just need the first edge
                             }
                         }
                     }
                 }
-
-                if (bestRef != null)
-                {
-                    references.Add(bestRef);
-                }
             }
 
-            // If still no references, use the element itself
-            if (references.Count == 0)
+            // If still no references, use the location curve
+            if (references.Count == 0 && wall.Location is LocationCurve locationCurve)
             {
+                // Create a reference to the element itself
                 references.Add(new Reference(wall));
             }
         }
         else if (element is FamilyInstance familyInstance)
         {
-            // Try to get geometric references from the family instance
-            var options = new Options();
-            options.View = view;
-            options.ComputeReferences = true;
-
-            var geometry = familyInstance.get_Geometry(options);
-            if (geometry != null && dimensionDirection != null)
+            // Try to get a reference from the family instance
+            try
             {
-                Reference bestRef = null;
-                double bestAlignment = -1;
-
-                foreach (var obj in geometry)
+                Reference centerRef = familyInstance.GetReferenceByName("Center");
+                if (centerRef != null)
                 {
-                    var solids = new List<Solid>();
-                    if (obj is Solid s && s.Faces.Size > 0)
-                        solids.Add(s);
-                    else if (obj is GeometryInstance gi)
-                    {
-                        foreach (var subObj in gi.GetInstanceGeometry())
-                        {
-                            if (subObj is Solid ss && ss.Faces.Size > 0)
-                                solids.Add(ss);
-                        }
-                    }
-
-                    foreach (var solid in solids)
-                    {
-                        foreach (Face face in solid.Faces)
-                        {
-                            if (face is PlanarFace planarFace)
-                            {
-                                if (Math.Abs(planarFace.FaceNormal.Z) > 0.9)
-                                    continue;
-                                double alignment = Math.Abs(planarFace.FaceNormal.DotProduct(dimensionDirection));
-                                if (alignment > bestAlignment)
-                                {
-                                    bestAlignment = alignment;
-                                    bestRef = face.Reference;
-                                }
-                            }
-                        }
-                    }
+                    references.Add(centerRef);
                 }
-
-                if (bestRef != null)
+                else
                 {
-                    references.Add(bestRef);
-                    return references;
+                    // Fallback to generic reference
+                    references.Add(new Reference(familyInstance));
                 }
             }
-
-            // Fallback to generic reference
-            references.Add(new Reference(familyInstance));
+            catch
+            {
+                // Fallback to generic reference
+                references.Add(new Reference(familyInstance));
+            }
         }
         else
         {
@@ -398,9 +338,8 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
     /// </summary>
     /// <param name="view">View to search in</param>
     /// <param name="point">Point to search at</param>
-    /// <param name="dimensionDirection">Direction of the dimension line</param>
     /// <returns>Reference or null</returns>
-    private Reference FindReferenceAtPoint(View view, XYZ point, XYZ dimensionDirection = null)
+    private Reference FindReferenceAtPoint(View view, XYZ point)
     {
         // In a non-3D view, we can't easily use ReferenceIntersector
         // Instead, we'll use a different approach based on view type
@@ -453,12 +392,10 @@ public class CreateDimensionEventHandler : IExternalEventHandler, IWaitableExter
                 }
             }
 
-            // If we found a close enough element, get a geometric face reference
+            // If we found a close enough element, return a reference to it
             if (closestElement != null && minDistance < 5.0) // 5 feet tolerance
             {
-                var refs = GetReferences(closestElement, view, dimensionDirection);
-                if (refs.Count > 0)
-                    return refs[0];
+                return new Reference(closestElement);
             }
         }
         catch (Exception ex)

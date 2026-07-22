@@ -75,9 +75,10 @@ export function registerCreateRoomTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create room failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create room failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

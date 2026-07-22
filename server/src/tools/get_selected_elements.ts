@@ -35,9 +35,10 @@ export function registerGetSelectedElementsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `get selected elements failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `get selected elements failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

@@ -57,9 +57,10 @@ export function registerGetCurrentViewElementsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `get current view elements failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `get current view elements failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

@@ -69,9 +69,10 @@ export function registerCreateLineBasedElementTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create line-based element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create line-based element failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

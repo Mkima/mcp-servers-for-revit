@@ -102,9 +102,10 @@ export function registerCreateStructuralFramingSystemTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create structural framing system failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create structural framing system failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

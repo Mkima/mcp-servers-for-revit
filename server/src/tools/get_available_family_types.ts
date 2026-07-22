@@ -50,9 +50,10 @@ export function registerGetAvailableFamilyTypesTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `get available family types failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `get available family types failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

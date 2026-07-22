@@ -34,9 +34,10 @@ export function registerDeleteElementTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `delete element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `delete element failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

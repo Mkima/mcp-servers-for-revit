@@ -45,9 +45,10 @@ export function registerSwitchActiveViewTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `switch active view failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `switch active view failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

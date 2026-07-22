@@ -93,8 +93,10 @@ export function registerAIElementFilterTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Get element information failed: ${error instanceof Error ? error.message : String(error)
-                }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Get element information failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

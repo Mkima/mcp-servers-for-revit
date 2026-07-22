@@ -78,9 +78,10 @@ export function registerCreatePointBasedElementTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create point-based element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create point-based element failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

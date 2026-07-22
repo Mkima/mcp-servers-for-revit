@@ -53,7 +53,10 @@ export function registerOperateElementTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Operate elements failed: ${error instanceof Error ? error.message : String(error)}`,
+              text: JSON.stringify({
+                success: false,
+                error: `Operate elements failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

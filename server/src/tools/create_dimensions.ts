@@ -88,9 +88,10 @@ export function registerCreateDimensionsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Dimension creation failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Dimension creation failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

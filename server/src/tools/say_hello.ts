@@ -32,9 +32,10 @@ export function registerSayHelloTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Say hello failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Say hello failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

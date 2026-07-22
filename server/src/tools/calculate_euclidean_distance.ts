@@ -26,7 +26,11 @@ export function registerCalculateEuclideanDistanceTool(server: McpServer) {
             content: [
               {
                 type: "text" as const,
-                text: `The Euclidean distance between elements ${element1_id} and ${element2_id} is ${result.distance.toFixed(2)} mm.`
+                text: JSON.stringify({
+                  success: true,
+                  distance: result.distance,
+                  formatted: `The Euclidean distance between elements ${element1_id} and ${element2_id} is ${result.distance.toFixed(2)} mm.`
+                }, null, 2)
               }
             ]
           };
@@ -38,9 +42,10 @@ export function registerCalculateEuclideanDistanceTool(server: McpServer) {
           content: [
             {
               type: "text" as const,
-              text: `Failed to calculate Euclidean distance: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Failed to calculate Euclidean distance: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

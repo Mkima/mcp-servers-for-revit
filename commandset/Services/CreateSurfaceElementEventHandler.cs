@@ -1,4 +1,4 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
 using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
@@ -25,7 +25,6 @@ namespace RevitMCPCommandSet.Services
         public AIResult<List<int>> Result { get; private set; }
         public string _floorName = "常规 - ";
         public bool _structural = true;
-        private List<string> _warnings = new List<string>();
 
         /// <summary>
         /// 设置创建的参数
@@ -42,10 +41,8 @@ namespace RevitMCPCommandSet.Services
             try
             {
                 var elementIds = new List<int>();
-                _warnings.Clear();
                 foreach (var data in CreatedInfo)
                 {
-                    int requestedTypeId = data.TypeId;
                     // Step0 获取构件类型
                     BuiltInCategory builtInCategory = BuiltInCategory.INVALID;
                     Enum.TryParse(data.Category.Replace(".", "").Replace("BuiltInCategory", ""), true, out builtInCategory);
@@ -65,8 +62,6 @@ namespace RevitMCPCommandSet.Services
                     // Step2 获取族类型
                     FamilySymbol symbol = null;
                     FloorType floorType = null;
-                    RoofType roofType = null;
-                    CeilingType ceilingType = null;
                     if (data.TypeId != -1 && data.TypeId != 0)
                     {
                         ElementId typeELeId = new ElementId(data.TypeId);
@@ -77,22 +72,12 @@ namespace RevitMCPCommandSet.Services
                             {
                                 symbol = typeEle as FamilySymbol;
                                 // 获取symbol的Category对象并转换为BuiltInCategory枚举
-                                builtInCategory = (BuiltInCategory)symbol.Category.Id.GetIntValue();
+                                builtInCategory = (BuiltInCategory)symbol.Category.Id.IntegerValue;
                             }
                             else if (typeEle != null && typeEle is FloorType)
                             {
                                 floorType = typeEle as FloorType;
-                                builtInCategory = (BuiltInCategory)floorType.Category.Id.GetIntValue();
-                            }
-                            else if (typeEle != null && typeEle is RoofType)
-                            {
-                                roofType = typeEle as RoofType;
-                                builtInCategory = (BuiltInCategory)roofType.Category.Id.GetIntValue();
-                            }
-                            else if (typeEle != null && typeEle is CeilingType)
-                            {
-                                ceilingType = typeEle as CeilingType;
-                                builtInCategory = (BuiltInCategory)ceilingType.Category.Id.GetIntValue();
+                                builtInCategory = (BuiltInCategory)floorType.Category.Id.IntegerValue;
                             }
                         }
                     }
@@ -103,61 +88,14 @@ namespace RevitMCPCommandSet.Services
                         case BuiltInCategory.OST_Floors:
                             if (floorType == null)
                             {
-                                // Requested typeId was invalid or not provided, fall back to first available
-                                floorType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(FloorType))
-                                    .OfCategory(BuiltInCategory.OST_Floors)
-                                    .Cast<FloorType>()
-                                    .FirstOrDefault();
+                                using (Transaction transaction = new Transaction(doc, "创建楼板类型"))
+                                {
+                                    transaction.Start();
+                                    floorType = CreateOrGetFloorType(doc, data.Thickness / 304.8);
+                                    transaction.Commit();
+                                }
                                 if (floorType == null)
-                                {
-                                    _warnings.Add($"No floor types available in project.");
                                     continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested floor typeId {requestedTypeId} not found. Defaulted to '{floorType.Name}' (ID: {floorType.Id.GetIntValue()})");
-                                }
-                            }
-                            break;
-                        case BuiltInCategory.OST_Roofs:
-                            if (roofType == null)
-                            {
-                                // Get default roof type if not specified
-                                roofType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(RoofType))
-                                    .OfCategory(BuiltInCategory.OST_Roofs)
-                                    .Cast<RoofType>()
-                                    .FirstOrDefault();
-                                if (roofType == null)
-                                {
-                                    _warnings.Add($"No roof types available in project.");
-                                    continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested roof typeId {requestedTypeId} not found. Defaulted to '{roofType.Name}' (ID: {roofType.Id.GetIntValue()})");
-                                }
-                            }
-                            break;
-                        case BuiltInCategory.OST_Ceilings:
-                            if (ceilingType == null)
-                            {
-                                // Get default ceiling type if not specified
-                                ceilingType = new FilteredElementCollector(doc)
-                                    .OfClass(typeof(CeilingType))
-                                    .OfCategory(BuiltInCategory.OST_Ceilings)
-                                    .Cast<CeilingType>()
-                                    .FirstOrDefault();
-                                if (ceilingType == null)
-                                {
-                                    _warnings.Add($"No ceiling types available in project.");
-                                    continue;
-                                }
-                                if (requestedTypeId != -1 && requestedTypeId != 0)
-                                {
-                                    _warnings.Add($"Requested ceiling typeId {requestedTypeId} not found. Defaulted to '{ceilingType.Name}' (ID: {ceilingType.Id.GetIntValue()})");
-                                }
                             }
                             break;
                         default:
@@ -198,8 +136,8 @@ namespace RevitMCPCommandSet.Services
                                 }
                                 CurveLoop curveLoop = CurveLoop.Create(data.Boundary.OuterLoop.Select(l => JZLine.ToLine(l) as Curve).ToList());
 
-                                // 多版本 - Floor.Create introduced in Revit 2022 but stable in 2023+
-#if REVIT2023_OR_GREATER
+                                // 多版本
+#if REVIT2022_OR_GREATER
                                 floor = Floor.Create(doc, new List<CurveLoop> { curveLoop }, floorType.Id, baseLevel.Id);
 #else
                                 floor = doc.Create.NewFloor(curves, floorType, baseLevel, _structural);
@@ -208,72 +146,21 @@ namespace RevitMCPCommandSet.Services
                                 if (floor != null)
                                 {
                                     floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseOffset);
-                                    elementIds.Add(floor.Id.GetIntValue());
-                                }
-                                break;
-                            case BuiltInCategory.OST_Roofs:
-                                CurveArray roofCurves = new CurveArray();
-                                foreach (var jzLine in data.Boundary.OuterLoop)
-                                {
-                                    roofCurves.Append(JZLine.ToLine(jzLine));
-                                }
-
-                                ModelCurveArray modelCurves = new ModelCurveArray();
-                                FootPrintRoof roof = doc.Create.NewFootPrintRoof(roofCurves, baseLevel, roofType, out modelCurves);
-
-                                if (roof != null)
-                                {
-                                    // Set all edges to non-sloped for flat roof
-                                    foreach (ModelCurve mc in modelCurves)
-                                    {
-                                        roof.set_DefinesSlope(mc, false);
-                                    }
-                                    // Set the roof offset from level
-                                    Parameter offsetParam = roof.get_Parameter(BuiltInParameter.ROOF_LEVEL_OFFSET_PARAM);
-                                    if (offsetParam != null)
-                                    {
-                                        offsetParam.Set(baseOffset);
-                                    }
-                                    elementIds.Add(roof.Id.GetIntValue());
-                                }
-                                break;
-                            case BuiltInCategory.OST_Ceilings:
-                                CurveLoop ceilingCurveLoop = CurveLoop.Create(data.Boundary.OuterLoop.Select(l => JZLine.ToLine(l) as Curve).ToList());
-
-#if REVIT2022_OR_GREATER
-                                Ceiling ceiling = Ceiling.Create(doc, new List<CurveLoop> { ceilingCurveLoop }, ceilingType.Id, baseLevel.Id);
-#else
-                                // Ceiling.Create API not available before Revit 2022
-                                Ceiling ceiling = null;
-                                _warnings.Add("Ceiling creation is not supported in Revit versions before 2022.");
-#endif
-                                if (ceiling != null)
-                                {
-                                    // Set the ceiling height offset from level
-                                    Parameter ceilingOffsetParam = ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM);
-                                    if (ceilingOffsetParam != null)
-                                    {
-                                        ceilingOffsetParam.Set(baseOffset);
-                                    }
-                                    elementIds.Add(ceiling.Id.GetIntValue());
+                                    elementIds.Add(floor.Id.IntegerValue);
                                 }
                                 break;
                             default:
+
                                 break;
                         }
 
                         transaction.Commit();
                     }
                 }
-                string message = $"Successfully created {elementIds.Count} element(s).";
-                if (_warnings.Count > 0)
-                {
-                    message += "\n\n⚠ Warnings:\n  • " + string.Join("\n  • ", _warnings);
-                }
                 Result = new AIResult<List<int>>
                 {
                     Success = true,
-                    Message = message,
+                    Message = $"成功创建{elementIds.Count}个族实例，其ElementId储存在Response属性中",
                     Response = elementIds,
                 };
             }
@@ -299,7 +186,6 @@ namespace RevitMCPCommandSet.Services
         /// <returns>操作是否在超时前完成</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 

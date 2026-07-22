@@ -36,7 +36,10 @@ export function registerAnalyzeModelStatisticsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Analyze model statistics failed: ${error instanceof Error ? error.message : String(error)}`,
+              text: JSON.stringify({
+                success: false,
+                error: `Analyze model statistics failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

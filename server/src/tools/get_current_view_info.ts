@@ -25,9 +25,10 @@ export function registerGetCurrentViewInfoTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `get current view info failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `get current view info failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

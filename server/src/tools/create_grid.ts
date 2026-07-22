@@ -107,9 +107,10 @@ export function registerCreateGridTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create grid failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create grid failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

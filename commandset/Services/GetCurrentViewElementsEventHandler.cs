@@ -1,4 +1,4 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
 using RevitMCPSDK.API.Interfaces;
 
@@ -65,7 +65,6 @@ namespace RevitMCPCommandSet.Services
         // 实现IWaitableExternalEventHandler接口
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
             return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
@@ -77,19 +76,19 @@ namespace RevitMCPCommandSet.Services
                 var doc = uiDoc.Document;
                 var activeView = doc.ActiveView;
 
+                // 如果传入的类别列表为空，则使用默认列表
+                List<string> modelCategories = (_modelCategoryList == null || _modelCategoryList.Count == 0)
+                    ? _defaultModelCategories
+                    : _modelCategoryList;
+
+                List<string> annotationCategories = (_annotationCategoryList == null || _annotationCategoryList.Count == 0)
+                    ? _defaultAnnotationCategories
+                    : _annotationCategoryList;
 
                 // 合并所有类别
                 List<string> allCategories = new List<string>();
-                if (_modelCategoryList == null && _annotationCategoryList == null)
-                {
-                    allCategories.AddRange(_defaultModelCategories);
-                    allCategories.AddRange(_defaultAnnotationCategories);
-                }
-                else
-                {
-                    allCategories.AddRange(_modelCategoryList ?? new List<string>());
-                    allCategories.AddRange(_annotationCategoryList ?? new List<string>());
-                }
+                allCategories.AddRange(modelCategories);
+                allCategories.AddRange(annotationCategories);
 
                 // 获取当前视图中的所有元素
                 var collector = new FilteredElementCollector(doc, activeView.Id)

@@ -72,9 +72,10 @@ export function registerCreateSurfaceBasedElementTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create surface-based element failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create surface-based element failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

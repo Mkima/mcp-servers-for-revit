@@ -36,23 +36,19 @@ export function registerColorElementsTool(server: McpServer) {
             return await revitClient.sendCommand("color_splash", params);
           });
 
-          // Format the response into a more user-friendly output
+          // Format the response into a JSON-formatted output
           if (response.success) {
             const coloredGroups = response.results || [];
-
-            let resultText = `Successfully colored ${response.totalElements} elements across ${response.coloredGroups} groups.\n\n`;
-            resultText += "Parameter Value Groups:\n";
-
-            coloredGroups.forEach((group: any) => {
-              const rgb = group.color;
-              resultText += `- "${group.parameterValue}": ${group.count} elements colored with RGB(${rgb.r}, ${rgb.g}, ${rgb.b})\n`;
-            });
 
             return {
               content: [
                 {
                   type: "text",
-                  text: resultText,
+                  text: JSON.stringify({
+                    success: true,
+                    message: `Successfully colored ${response.totalElements} elements across ${response.coloredGroups} groups`,
+                    results: coloredGroups
+                  }, null, 2),
                 },
               ],
             };
@@ -61,7 +57,10 @@ export function registerColorElementsTool(server: McpServer) {
               content: [
                 {
                   type: "text",
-                  text: `Color operation failed: ${response.message}`,
+                  text: JSON.stringify({
+                    success: false,
+                    error: `Color operation failed: ${response.message}`
+                  }, null, 2),
                 },
               ],
             };
@@ -71,9 +70,10 @@ export function registerColorElementsTool(server: McpServer) {
             content: [
               {
                 type: "text",
-                text: `Color operation failed: ${
-                    error instanceof Error ? error.message : String(error)
-                }`,
+                text: JSON.stringify({
+                  success: false,
+                  error: `Color operation failed: ${error instanceof Error ? error.message : String(error)}`
+                }, null, 2),
               },
             ],
           };

@@ -56,9 +56,10 @@ export function registerSendCodeToRevitTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Code execution failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Code execution failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

@@ -37,9 +37,10 @@ export function registerTagAllWallsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Wall tagging failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Wall tagging failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

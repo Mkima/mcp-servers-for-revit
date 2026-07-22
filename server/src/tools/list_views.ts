@@ -25,9 +25,10 @@ export function registerListViewsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `list views failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `list views failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

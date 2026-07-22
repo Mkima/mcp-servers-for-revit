@@ -1,6 +1,5 @@
-using Autodesk.Revit.UI;
+﻿using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
-using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 
 namespace RevitMCPCommandSet.Services
@@ -197,7 +196,11 @@ namespace RevitMCPCommandSet.Services
                             parameterValue = paramValue,
                             count = elementIds.Count,
                             color = new { r = rgb[0], g = rgb[1], b = rgb[2] },
-                            elementIds = elementIds.Select(id => id.GetValue().ToString()).ToList()
+#if REVIT2024_OR_GREATER
+                            elementIds = elementIds.Select(id => id.Value.ToString()).ToList()
+#else
+                            elementIds = elementIds.Select(id => id.IntegerValue.ToString()).ToList()
+#endif
                         });
                     }
 
@@ -233,8 +236,7 @@ namespace RevitMCPCommandSet.Services
         /// <returns>Whether operation completed within timeout</returns>
         public bool WaitForCompletion(int timeoutMilliseconds = 10000)
         {
-            _resetEvent.Reset();
-        return _resetEvent.WaitOne(timeoutMilliseconds);
+            return _resetEvent.WaitOne(timeoutMilliseconds);
         }
 
         /// <summary>
@@ -259,15 +261,24 @@ namespace RevitMCPCommandSet.Services
                     return parameter.AsValueString() ?? parameter.AsDouble().ToString();
 
                 case StorageType.ElementId:
+#if REVIT2024_OR_GREATER
                     ElementId id = parameter.AsElementId();
                     if (id == ElementId.InvalidElementId)
                         return "None";
 
                     Element element = doc.GetElement(id);
-                    return element?.Name ?? id.GetValue().ToString();
+                    return element?.Name ?? id.Value.ToString();
+#else
+                    ElementId id = parameter.AsElementId();
+                    if (id == ElementId.InvalidElementId)
+                        return "None";
+
+                    Element element = doc.GetElement(id);
+                    return element?.Name ?? id.IntegerValue.ToString();
+#endif
                 case StorageType.Integer:
-#if REVIT2023_OR_GREATER
-                    // For Revit 2023+ we should use ForgeTypeId approach
+#if REVIT2022_OR_GREATER
+                    // For Revit 2022+ we should use ForgeTypeId approach
                     if (parameter.Definition is InternalDefinition internalDef)
                     {
                         try

@@ -42,9 +42,10 @@ export function registerExportRoomDataTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Export room data failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Export room data failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

@@ -79,9 +79,10 @@ export function registerCreateLevelTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Create level failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Create level failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

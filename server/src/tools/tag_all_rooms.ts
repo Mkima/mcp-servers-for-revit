@@ -41,9 +41,10 @@ export function registerTagAllRoomsTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Room tagging failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Room tagging failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

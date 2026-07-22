@@ -20,6 +20,7 @@ namespace revit_mcp_plugin.Core
         private TcpListener _listener;
         private Thread _listenerThread;
         private bool _isRunning;
+        private bool _isInitialized;
         private int _port = 8080;
         private UIApplication _uiApp;
         private ICommandRegistry _commandRegistry;
@@ -43,51 +44,37 @@ namespace revit_mcp_plugin.Core
         }
 
         public bool IsRunning => _isRunning;
+        public bool IsInitialized => _isInitialized;
 
-        public int Port
+        public void Initialize(UIControlledApplication uiControlledApp)
         {
-            get => _port;
-            set => _port = value;
+            ConfigurationManager configManager = new ConfigurationManager(_logger);
+            configManager.LoadConfiguration();
+
+            _port = 8080;
+            _uiApp = null;
+
+            _logger.Info($"Socket service initialized (controlled app mode) on port {_port}");
         }
 
-        // 初始化
-        // Initialization.
-        public void Initialize(UIApplication uiApp)
+        public void InitializeWithUI(UIApplication uiApp)
         {
             _uiApp = uiApp;
+            _isInitialized = true;
 
-            // 初始化事件管理器
-            // Initialize ExternalEventManager
             ExternalEventManager.Instance.Initialize(uiApp, _logger);
 
-            // 记录当前 Revit 版本
-            // Get the current Revit version.
             var versionAdapter = new RevitMCPSDK.API.Utils.RevitVersionAdapter(_uiApp.Application);
             string currentVersion = versionAdapter.GetRevitVersion();
             _logger.Info("当前 Revit 版本: {0}\nCurrent Revit version: {0}", currentVersion);
 
-
-
-            // 创建命令执行器
-            // Create CommandExecutor
             _commandExecutor = new CommandExecutor(_commandRegistry, _logger);
 
-            // 加载配置并注册命令
-            // Load configuration and register commands.
             ConfigurationManager configManager = new ConfigurationManager(_logger);
             configManager.LoadConfiguration();
-            
 
-            //// 从配置中读取服务端口
-            //// Read the service port from the configuration.
-            //if (configManager.Config.Settings.Port > 0)
-            //{
-            //    _port = configManager.Config.Settings.Port;
-            //}
-            _port = 8080; // 固定端口号 - Hard-wired port number.
+            _port = 8080;
 
-            // 加载命令
-            // Load command.
             CommandManager commandManager = new CommandManager(
                 _commandRegistry, _logger, configManager, _uiApp);
             commandManager.LoadCommands();

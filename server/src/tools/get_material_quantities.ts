@@ -41,9 +41,10 @@ export function registerGetMaterialQuantitiesTool(server: McpServer) {
           content: [
             {
               type: "text",
-              text: `Get material quantities failed: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+              text: JSON.stringify({
+                success: false,
+                error: `Get material quantities failed: ${error instanceof Error ? error.message : String(error)}`
+              }, null, 2),
             },
           ],
         };

@@ -139,8 +139,23 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "get_all_elements_by_room",
+      "description": "Get all Revit elements in a specific room by its ElementId. Returns detailed information about each element including location, family, type, and level.",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "create_dimensions",
       "description": "Create dimension annotations between elements or points in the current view",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_spatial_topology",
+      "description": "Fetches a clean hierarchical dictionary of the active project boundaries, mapping out available levels and rooms to prevent token flooding",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
+      "commandName": "get_mep_elements_by_room",
+      "description": "Contextually scopes data retrieval to a specific space. Queries the spatial geometry of the requested room and isolates MEP (Mechanical, Electrical, Plumbing) elements located strictly inside its 3D boundaries.",
       "assemblyPath": "RevitMCPCommandSet.dll"
     }
   ]
