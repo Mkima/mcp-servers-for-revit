@@ -52,9 +52,6 @@ namespace RevitMCPCommandSet.Services.OpenDocument
                 var worksetConfiguration = new WorksetConfiguration(WorksetConfigurationOption.OpenAllWorksets);
                 openOptions.SetOpenWorksetsConfiguration(worksetConfiguration);
 
-                var transientErrorHandler = app.TransientMessageHandler;
-
-                Document openedDocument;
                 if (app.ActiveUIDocument != null && app.ActiveUIDocument.Document != null)
                 {
                     var currentDocTitle = app.ActiveUIDocument.Document.Title;
@@ -71,16 +68,17 @@ namespace RevitMCPCommandSet.Services.OpenDocument
                     }
                 }
 
-                UIDocument uiDoc = null;
+                UIDocument uiDoc;
 
                 if (extension.Equals(".rfa", StringComparison.OrdinalIgnoreCase))
                 {
-                    var familyDoc = app.OpenDocumentFile(DocumentPath);
+                    var familyDoc = app.Application.OpenDocumentFile(DocumentPath);
                     uiDoc = new UIDocument(familyDoc);
                 }
                 else
                 {
-                    uiDoc = app.OpenAndActivateDocument(DocumentPath, openOptions, false);
+                    var modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(DocumentPath);
+                    uiDoc = app.OpenAndActivateDocument(modelPath, openOptions, false);
                 }
 
                 if (uiDoc == null || uiDoc.Document == null)

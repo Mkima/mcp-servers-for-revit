@@ -80,4 +80,10 @@ public class LevelInfo
     /// </summary>
     [JsonProperty("viewElevationOffset")]
     public double ViewElevationOffset { get; set; }
+
+    [JsonProperty("createFloorPlan")]
+    public bool CreateFloorPlan { get; set; } = true;
+
+    [JsonProperty("createCeilingPlan")]
+    public bool CreateCeilingPlan { get; set; } = true;
 }

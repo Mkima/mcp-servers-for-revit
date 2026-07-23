@@ -87,4 +87,19 @@ public class RoomCreationInfo
     /// </summary>
     [JsonProperty("options")]
     public Dictionary<string, object> Options { get; set; }
+
+    [JsonProperty("upperLimitId")]
+    public int UpperLimitId { get; set; }
+
+    [JsonProperty("limitOffset")]
+    public double LimitOffset { get; set; }
+
+    [JsonProperty("baseOffset")]
+    public double BaseOffset { get; set; }
+
+    [JsonProperty("department")]
+    public string Department { get; set; }
+
+    [JsonProperty("comments")]
+    public string Comments { get; set; }
 }
