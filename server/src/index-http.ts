@@ -104,8 +104,8 @@ async function main() {
   await appendLog(`Starting Revit MCP HTTP server on port ${PORT}`);
   await registerTools(server);
 
-  app.listen(PORT, () => {
-    console.error(`Revit MCP HTTP Server listening on port ${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.error(`Revit MCP HTTP Server listening on 0.0.0.0:${PORT}`);
   });
 }
 
