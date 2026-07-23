@@ -15,6 +15,7 @@
         "prebuild": "npm run clean",
         "build": "tsc",
         "start": "node ./build/index.js",
+        "start:http": "node ./build/index-http.js --port 3001",
         "prepublishOnly": "npm run build"
     },
     "files": [
@@ -45,11 +46,13 @@
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.7.0",
         "better-sqlite3": "^12.8.0",
+        "express": "^5.2.1",
         "ws": "^8.18.1",
         "zod": "^3.24.2"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.13",
+        "@types/express": "^5.0.6",
         "@types/node": "^22.13.10",
         "@types/ws": "^8.18.0",
         "rimraf": "^5.0.10",
