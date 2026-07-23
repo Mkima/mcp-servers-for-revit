@@ -1,9 +1,9 @@
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
-using RevitMCPCommandSet.Services.Document;
+using RevitMCPCommandSet.Services.OpenDocument;
 using RevitMCPSDK.API.Base;
 
-namespace RevitMCPCommandSet.Commands.Document
+namespace RevitMCPCommandSet.Commands.OpenDocument
 {
     public class OpenDocumentCommand : ExternalEventCommandBase
     {

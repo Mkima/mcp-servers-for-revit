@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace RevitMCPCommandSet.Services.Document
+namespace RevitMCPCommandSet.Services.OpenDocument
 {
     public class OpenDocumentEventHandler : IExternalEventHandler, IWaitableExternalEventHandler
     {
